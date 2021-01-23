@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from LIO.lio.utils.util import grad_graph
 
 
 class Net(nn.Module):
@@ -28,6 +29,7 @@ class Net(nn.Module):
         c_z2 = self.c_relu2(self.c_l2(c_z1))
         v_out = self.v(c_z2)
 
+        grad_graph(pi_out)
         return pi_out, v_out
 
 
