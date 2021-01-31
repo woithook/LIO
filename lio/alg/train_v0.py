@@ -17,7 +17,7 @@ import torch
 from torch.nn import functional as F
 from matplotlib import pyplot as plt
 
-from lio.agent.lio_agent_my import Actor
+from lio.agent.lio_agent import Actor
 from lio.model.actor_net import Trajectory
 
 from lio.alg import config_room_lio

@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from LIO.lio.utils.util import grad_graph
 
 
 class Net(nn.Module):
@@ -29,7 +28,6 @@ class Net(nn.Module):
         c_z2 = self.c_relu2(self.c_l2(c_z1))
         v_out = self.v(c_z2)
 
-        grad_graph(pi_out)
         return pi_out, v_out
 
 
@@ -46,8 +44,8 @@ class Reward_net(nn.Module):
         self.relu2 = nn.ReLU()
         self.sig = nn.Sigmoid()
 
-    def forward(self, input):
-        z1 = self.relu1(self.l1(input))
+    def forward(self, inputs):
+        z1 = self.relu1(self.l1(inputs))
         z2 = self.relu2(self.l2(z1))
         output = self.sig(self.l3(z2))
         return output
@@ -65,14 +63,14 @@ class Trajectory(object):
         self.current_action = []
         self.current_action_hot = []
         self.reward_env = []
-        self.reward_given = []
+        self.reward_from = []
 
     def add(self, current_state, current_action, current_action_hot, reward, reward_given):
         self.current_state.append(current_state)
         self.current_action.append(current_action)
         self.current_action_hot.append(current_action_hot)
         self.reward_env.append(reward)
-        self.reward_given.append(reward_given)
+        self.reward_from.append(reward_given)
 
     def get_state(self):
         self.current_state = torch.Tensor(self.current_state)
@@ -81,8 +79,24 @@ class Trajectory(object):
     def get_reward_env(self):
         return self.reward_env
 
-    def get_reward_given(self):
-        return self.reward_given
+    def get_reward_from(self):
+        return self.reward_from
+
+    def get_returns_env(self):
+        returns_env = []
+        R = 0
+        for r in self.reward_env[::-1]:
+            R = r + 0.99 * R
+            returns_env.insert(0, R)
+        return returns_env
+
+    def get_returns_from(self):
+        returns_from = []
+        R = 0
+        for r in self.reward_from[::-1]:
+            R = r + 0.99 * R
+            returns_from.insert(0, R)
+        return returns_from
 
     def get_action(self):
         return self.current_action
